@@ -3,13 +3,15 @@
  * @copyright 2016-present @tunnckoCore/team and contributors
  * @license MIT
  */
-'use strict';
+'use strict'
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+function _interopDefault(ex) {
+  return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex
+}
 
-var arrayify = _interopDefault(require('arrify'));
-var babylon = _interopDefault(require('babylon'));
-var define = _interopDefault(require('define-property'));
+var arrayify = _interopDefault(require('arrify'))
+var babylon = _interopDefault(require('babylon'))
+var define = _interopDefault(require('define-property'))
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -19,9 +21,9 @@ var define = _interopDefault(require('define-property'));
  */
 
 /* eslint-disable jsdoc/require-param-description */
-const utils = {};
-utils.define = define;
-utils.arrayify = arrayify;
+const utils = {}
+utils.define = define
+utils.arrayify = arrayify
 /**
  * > Create default result object,
  * and normalize incoming arguments.
@@ -37,18 +39,18 @@ utils.setDefaults = function setDefaults(code) {
     body: '',
     args: [],
     params: ''
-  };
+  }
 
   if (typeof code === 'function') {
-    code = code.toString('utf8');
+    code = code.toString('utf8')
   }
 
   if (typeof code !== 'string') {
-    code = ''; // makes result.isValid === false
+    code = '' // makes result.isValid === false
   }
 
-  return utils.setHiddenDefaults(result, code);
-};
+  return utils.setHiddenDefaults(result, code)
+}
 /**
  * > Create hidden properties into
  * the result object.
@@ -59,19 +61,18 @@ utils.setDefaults = function setDefaults(code) {
  * @private
  */
 
-
 utils.setHiddenDefaults = function setHiddenDefaults(result, code) {
-  utils.define(result, 'defaults', {});
-  utils.define(result, 'value', code);
-  utils.define(result, 'isValid', code.length > 0);
-  utils.define(result, 'isArrow', false);
-  utils.define(result, 'isAsync', false);
-  utils.define(result, 'isNamed', false);
-  utils.define(result, 'isAnonymous', false);
-  utils.define(result, 'isGenerator', false);
-  utils.define(result, 'isExpression', false);
-  return result;
-};
+  utils.define(result, 'defaults', {})
+  utils.define(result, 'value', code)
+  utils.define(result, 'isValid', code.length > 0)
+  utils.define(result, 'isArrow', false)
+  utils.define(result, 'isAsync', false)
+  utils.define(result, 'isNamed', false)
+  utils.define(result, 'isAnonymous', false)
+  utils.define(result, 'isGenerator', false)
+  utils.define(result, 'isExpression', false)
+  return result
+}
 /**
  * > Get needed AST tree, depending on what
  * parse method is used.
@@ -82,17 +83,16 @@ utils.setHiddenDefaults = function setHiddenDefaults(result, code) {
  * @private
  */
 
-
 utils.getNode = function getNode(result, opts) {
   if (typeof opts.parse === 'function') {
-    result.value = `(${result.value})`;
-    const ast = opts.parse(result.value, opts);
-    const body = ast.program && ast.program.body || ast.body;
-    return body[0].expression;
+    result.value = `(${result.value})`
+    const ast = opts.parse(result.value, opts)
+    const body = (ast.program && ast.program.body) || ast.body
+    return body[0].expression
   }
 
-  return babylon.parseExpression(result.value, opts);
-};
+  return babylon.parseExpression(result.value, opts)
+}
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -113,17 +113,17 @@ utils.getNode = function getNode(result, opts) {
  * @return {Object} result
  * @private
  */
-var body = (app => (node, result) => {
-  result.body = result.value.slice(node.body.start, node.body.end);
-  const openCurly = result.body.charCodeAt(0) === 123;
-  const closeCurly = result.body.charCodeAt(result.body.length - 1) === 125;
+var body = app => (node, result) => {
+  result.body = result.value.slice(node.body.start, node.body.end)
+  const openCurly = result.body.charCodeAt(0) === 123
+  const closeCurly = result.body.charCodeAt(result.body.length - 1) === 125
 
   if (openCurly && closeCurly) {
-    result.body = result.body.slice(1, -1);
+    result.body = result.body.slice(1, -1)
   }
 
-  return result;
-});
+  return result
+}
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -149,19 +149,19 @@ var body = (app => (node, result) => {
  * @return {Object} result
  * @private
  */
-var props = (app => (node, result) => {
-  app.define(result, 'isArrow', node.type.startsWith('Arrow'));
-  app.define(result, 'isAsync', node.async || false);
-  app.define(result, 'isGenerator', node.generator || false);
-  app.define(result, 'isExpression', node.expression || false);
-  app.define(result, 'isAnonymous', node.id === null);
-  app.define(result, 'isNamed', !result.isAnonymous); // if real anonymous -> set to null,
+var props = app => (node, result) => {
+  app.define(result, 'isArrow', node.type.startsWith('Arrow'))
+  app.define(result, 'isAsync', node.async || false)
+  app.define(result, 'isGenerator', node.generator || false)
+  app.define(result, 'isExpression', node.expression || false)
+  app.define(result, 'isAnonymous', node.id === null)
+  app.define(result, 'isNamed', !result.isAnonymous) // if real anonymous -> set to null,
   // notice that you can name you function `anonymous`, haha
   // and it won't be "real" anonymous, so `isAnonymous` will be `false`
 
-  result.name = result.isAnonymous ? null : node.id.name;
-  return result;
-});
+  result.name = result.isAnonymous ? null : node.id.name
+  return result
+}
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -182,27 +182,34 @@ var props = (app => (node, result) => {
  * @return {Object} result
  * @private
  */
-var params = (app => (node, result) => {
+var params = app => (node, result) => {
   if (!node.params.length) {
-    return result;
+    return result
   }
 
   node.params.forEach(param => {
-    const defaultArgsName = param.type === 'AssignmentPattern' && param.left && param.left.name;
-    const restArgName = param.type === 'RestElement' && param.argument && param.argument.name;
-    const name = param.name || defaultArgsName || restArgName;
-    result.args.push(name);
+    const defaultArgsName =
+      param.type === 'AssignmentPattern' && param.left && param.left.name
+    const restArgName =
+      param.type === 'RestElement' && param.argument && param.argument.name
+    const name = param.name || defaultArgsName || restArgName
+    result.args.push(name)
 
     if (param.right && param.right.type === 'SequenceExpression') {
-      let lastExpression = param.right.expressions.pop();
-      result.defaults[name] = result.value.slice(lastExpression.start, lastExpression.end);
+      let lastExpression = param.right.expressions.pop()
+      result.defaults[name] = result.value.slice(
+        lastExpression.start,
+        lastExpression.end
+      )
     } else {
-      result.defaults[name] = param.right ? result.value.slice(param.right.start, param.right.end) : undefined;
+      result.defaults[name] = param.right
+        ? result.value.slice(param.right.start, param.right.end)
+        : undefined
     }
-  });
-  result.params = result.args.join(', ');
-  return result;
-});
+  })
+  result.params = result.args.join(', ')
+  return result
+}
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -223,30 +230,30 @@ var params = (app => (node, result) => {
  * @private
  */
 
-var initial = (app => (node, result) => {
-  const isFn = node.type.endsWith('FunctionExpression');
-  const isMethod = node.type === 'ObjectExpression';
+var initial = app => (node, result) => {
+  const isFn = node.type.endsWith('FunctionExpression')
+  const isMethod = node.type === 'ObjectExpression'
   /* istanbul ignore next */
 
   if (!isFn && !isMethod) {
-    return;
+    return
   }
 
-  node = isMethod ? node.properties[0] : node;
-  node.id = isMethod ? node.key : node.id; // babylon node.properties[0] is `ObjectMethod` that has `params` and `body`;
+  node = isMethod ? node.properties[0] : node
+  node.id = isMethod ? node.key : node.id // babylon node.properties[0] is `ObjectMethod` that has `params` and `body`;
   // acorn node.properties[0] is `Property` that has `value`;
 
   if (node.type === 'Property') {
-    const id = node.key;
-    node = node.value;
-    node.id = id;
+    const id = node.key
+    node = node.value
+    node.id = id
   }
 
-  result = props(app)(node, result);
-  result = params(app)(node, result);
-  result = body(app)(node, result);
-  return result;
-});
+  result = props(app)(node, result)
+  result = params(app)(node, result)
+  result = body(app)(node, result)
+  return result
+}
 
 /*!
  * parse-function <https://github.com/tunnckoCore/parse-function>
@@ -303,7 +310,7 @@ var initial = (app => (node, result) => {
  */
 
 function parseFunction(opts) {
-  const plugins = [];
+  const plugins = []
   const app = {
     /**
      * > Parse a given `code` and returns a `result` object
@@ -343,27 +350,27 @@ function parseFunction(opts) {
      * @api public
      */
     parse(code, options) {
-      let result = utils.setDefaults(code);
+      let result = utils.setDefaults(code)
 
       if (!result.isValid) {
-        return result;
+        return result
       }
 
-      opts = Object.assign({}, opts, options);
-      const isFunction = result.value.startsWith('function');
-      const isAsyncFn = result.value.startsWith('async function');
-      const isAsync = result.value.startsWith('async');
-      const isArrow = result.value.includes('=>');
-      const isAsyncArrow = isAsync && isArrow; // eslint-disable-next-line no-useless-escape
+      opts = Object.assign({}, opts, options)
+      const isFunction = result.value.startsWith('function')
+      const isAsyncFn = result.value.startsWith('async function')
+      const isAsync = result.value.startsWith('async')
+      const isArrow = result.value.includes('=>')
+      const isAsyncArrow = isAsync && isArrow // eslint-disable-next-line no-useless-escape
 
-      const isMethod = /^\*?.+\([\s\S\w\W]*\)\s*\{/i.test(result.value);
+      const isMethod = /^\*?.+\([\s\S\w\W]*\)\s*\{/i.test(result.value)
 
       if (!(isFunction || isAsyncFn || isAsyncArrow) && isMethod) {
-        result.value = `{ ${result.value} }`;
+        result.value = `{ ${result.value} }`
       }
 
-      let node = utils.getNode(result, opts);
-      return plugins.reduce((res, fn) => fn(node, res) || res, result);
+      let node = utils.getNode(result, opts)
+      return plugins.reduce((res, fn) => fn(node, res) || res, result)
     },
 
     /**
@@ -412,13 +419,13 @@ function parseFunction(opts) {
      * @api public
      */
     use(fn) {
-      const ret = fn(app);
+      const ret = fn(app)
 
       if (typeof ret === 'function') {
-        plugins.push(ret);
+        plugins.push(ret)
       }
 
-      return app;
+      return app
     },
 
     /**
@@ -474,9 +481,9 @@ function parseFunction(opts) {
      * @api public
      */
     define: utils.define
-  };
-  app.use(initial);
-  return app;
+  }
+  app.use(initial)
+  return app
 }
 
-module.exports = parseFunction;
+module.exports = parseFunction
